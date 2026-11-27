@@ -5,7 +5,13 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Heart, Moon, Sparkles, Sun, X } from 'lucide-react';
 import { GardenFlowerMessage, SUNFLOWER_CONTENT } from '../config/sunflowerContent';
+import {
+  createCursorTrailSpark,
+  createHeartBloomParticles,
+  LoveSparkParticle,
+} from '../utils/loveSpark';
 import { SunlightTheme } from '../utils/universeState';
+import { LoveSparkTrail } from './LoveSparkTrail';
 import { IllustratedBoy } from './StoryCharacters';
 
 interface SunflowerGarden3DProps {
@@ -147,6 +153,12 @@ export const SunflowerGarden3D: React.FC<SunflowerGarden3DProps> = ({
   const [rayaModalOpen, setRayaModalOpen] = useState(false);
   const [rayaWarmed, setRayaWarmed] = useState(false);
   const [webglFallback, setWebglFallback] = useState(false);
+  const [sparkParticles, setSparkParticles] = useState<LoveSparkParticle[]>([]);
+  const [sparkTrailCursor, setSparkTrailCursor] = useState<{
+    x: number;
+    y: number;
+    active: boolean;
+  }>({ x: 0, y: 0, active: false });
 
   // Refs synced with props so WebGL mounts once and never resets on React state changes
   const modeRef = useRef(mode);
@@ -157,6 +169,11 @@ export const SunflowerGarden3D: React.FC<SunflowerGarden3DProps> = ({
   const rayaWarmedRef = useRef(false);
   const portalZoomRef = useRef(false);
   const hoveredKindRef = useRef<string | null>(null);
+  const sparkTrailUntilRef = useRef(0);
+  const lastTrailEmitRef = useRef(0);
+  const lastAuraMoveRef = useRef(0);
+  const trailSeqRef = useRef(0);
+  const sparkTimersRef = useRef<number[]>([]);
 
   const callbacksRef = useRef({
     onFlowerVisited,
@@ -748,6 +765,16 @@ export const SunflowerGarden3D: React.FC<SunflowerGarden3DProps> = ({
       mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1;
     };
 
+    const spawnSparkBatch = (batch: LoveSparkParticle[], ttlMs: number) => {
+      const ids = new Set(batch.map((p) => p.id));
+      setSparkParticles((prev) => [...prev.slice(-52), ...batch]);
+      const tId = window.setTimeout(() => {
+        setSparkParticles((prev) => prev.filter((p) => !ids.has(p.id)));
+        sparkTimersRef.current = sparkTimersRef.current.filter((id) => id !== tId);
+      }, ttlMs);
+      sparkTimersRef.current.push(tId);
+    };
+
     const onPointerDown = (e: PointerEvent) => {
       pointerDownPos = { x: e.clientX, y: e.clientY };
     };
@@ -766,7 +793,23 @@ export const SunflowerGarden3D: React.FC<SunflowerGarden3DProps> = ({
       });
 
       const hits = raycaster.intersectObjects(activeHitMeshes, false);
-      if (hits.length === 0) return;
+      if (hits.length === 0) {
+        // Clicked empty space in the garden -> bloom Love Spark heart trail
+        const bloom = createHeartBloomParticles(e.clientX, e.clientY, 14);
+        spawnSparkBatch(bloom, 1550);
+        const expiresAt = performance.now() + 2800;
+        sparkTrailUntilRef.current = expiresAt;
+        setSparkTrailCursor({ x: e.clientX, y: e.clientY, active: true });
+        callbacksRef.current.onPlaySfx('sparkle');
+        const endTimer = window.setTimeout(() => {
+          if (performance.now() >= sparkTrailUntilRef.current - 20) {
+            setSparkTrailCursor((prev) => ({ ...prev, active: false }));
+          }
+          sparkTimersRef.current = sparkTimersRef.current.filter((id) => id !== endTimer);
+        }, 2850);
+        sparkTimersRef.current.push(endTimer);
+        return;
+      }
       const rig = hits[0].object.userData.rig as FlowerRig;
 
       if (rig.kind === 'hero' && typeof rig.messageId === 'number') {
@@ -801,6 +844,23 @@ export const SunflowerGarden3D: React.FC<SunflowerGarden3DProps> = ({
     let lastHover = 0;
     const onPointerMove = (e: PointerEvent) => {
       const now = performance.now();
+
+      if (now < sparkTrailUntilRef.current) {
+        if (now - lastAuraMoveRef.current >= 24) {
+          lastAuraMoveRef.current = now;
+          setSparkTrailCursor({ x: e.clientX, y: e.clientY, active: true });
+        }
+        if (now - lastTrailEmitRef.current >= 38) {
+          lastTrailEmitRef.current = now;
+          const trailSpark = createCursorTrailSpark(
+            e.clientX,
+            e.clientY,
+            trailSeqRef.current++,
+          );
+          spawnSparkBatch([trailSpark], 1150);
+        }
+      }
+
       if (now - lastHover < 60) return;
       lastHover = now;
       updateMouse(e.clientX, e.clientY);
@@ -1068,6 +1128,8 @@ export const SunflowerGarden3D: React.FC<SunflowerGarden3DProps> = ({
       disposed = true;
       cancelAnimationFrame(frameId);
       clearTimeout(frameId);
+      sparkTimersRef.current.forEach((id) => window.clearTimeout(id));
+      sparkTimersRef.current = [];
       window.removeEventListener('resize', onResize);
       renderer.domElement.removeEventListener('pointerdown', onPointerDown);
       renderer.domElement.removeEventListener('pointerup', onPointerUp);
@@ -1107,6 +1169,9 @@ export const SunflowerGarden3D: React.FC<SunflowerGarden3DProps> = ({
         data-testid="sunflower-3d-canvas"
         className="absolute inset-0 h-full w-full"
       />
+
+      {/* Love Spark Heart Particle Bloom & Cursor Trail Overlay */}
+      <LoveSparkTrail particles={sparkParticles} glowCursor={sparkTrailCursor} />
 
       {webglFallback && (
         <div className="universe-page-bg absolute inset-0 flex items-center justify-center p-6 text-center">
