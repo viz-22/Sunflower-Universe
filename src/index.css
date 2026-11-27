@@ -1,0 +1,215 @@
+@import "tailwindcss";
+
+:root {
+  --sunflower-yellow: #F9C846;
+  --golden-honey: #E8A92E;
+  --deep-brown: #59391F;
+  --warm-cream: #FFF7E7;
+  --soft-peach: #F6D3B5;
+  --garden-green: #526B42;
+  --sunset-orange: #D98A47;
+  --soft-white: #FFFCF5;
+
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-body: 'Lora', Georgia, serif;
+  --font-hand: 'Caveat', cursive;
+
+  /* Global dynamic sunlight intensity theme variables */
+  --universe-bg-top: #FFF7E7;
+  --universe-bg-bottom: #F6D3B5;
+  --universe-surface: #FFFCF5;
+  --universe-text: #59391F;
+  --universe-muted: #7A4F2B;
+  --universe-border: rgba(89, 57, 31, 0.14);
+  --universe-shadow-blur: 16px;
+}
+
+@layer base {
+  html,
+  body {
+    background: linear-gradient(180deg, var(--universe-bg-top) 0%, var(--universe-bg-bottom) 100%);
+    background-attachment: fixed;
+    color: var(--universe-text);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    transition: background 0.5s ease, color 0.4s ease;
+  }
+
+  h1, h2, h3, h4, .font-display {
+    font-family: var(--font-display);
+  }
+
+  .font-hand {
+    font-family: var(--font-hand);
+  }
+}
+
+.universe-page-bg {
+  background: linear-gradient(180deg, var(--universe-bg-top) 0%, var(--universe-bg-bottom) 100%);
+  color: var(--universe-text);
+  transition: background 0.5s ease, color 0.4s ease;
+}
+
+.universe-card {
+  background-color: var(--universe-surface);
+  color: var(--universe-text);
+  border-color: var(--universe-border);
+  box-shadow: 0 10px var(--universe-shadow-blur) rgba(25, 16, 12, 0.14);
+  transition: background-color 0.45s ease, color 0.4s ease, box-shadow 0.45s ease;
+}
+
+.universe-shadow {
+  box-shadow: 0 10px var(--universe-shadow-blur) rgba(25, 16, 12, 0.18);
+  transition: box-shadow 0.45s ease;
+}
+
+/* Gentle organic animations */
+@keyframes swaySlow {
+  0%, 100% { transform: rotate(-2.5deg); }
+  50% { transform: rotate(2.5deg); }
+}
+
+@keyframes floatPetal {
+  0% {
+    transform: translateY(-10vh) translateX(0px) rotate(0deg);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.9;
+  }
+  85% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateY(105vh) translateX(64px) rotate(260deg);
+    opacity: 0;
+  }
+}
+
+@keyframes driftCloud {
+  0%, 100% { transform: translateX(0px); }
+  50% { transform: translateX(28px); }
+}
+
+@keyframes flutterButterfly {
+  0%, 100% { transform: translate(0px, 0px) rotate(-4deg); }
+  25% { transform: translate(18px, -14px) rotate(4deg); }
+  50% { transform: translate(34px, 4px) rotate(-3deg); }
+  75% { transform: translate(14px, 12px) rotate(5deg); }
+}
+
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes softBeat {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+
+.animate-sway {
+  animation: swaySlow 5s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+.animate-float-petal {
+  animation: floatPetal 12s linear infinite;
+}
+
+.animate-drift-cloud {
+  animation: driftCloud 18s ease-in-out infinite;
+}
+
+.animate-butterfly {
+  animation: flutterButterfly 7s ease-in-out infinite;
+}
+
+.animate-vinyl {
+  animation: spinSlow 14s linear infinite;
+}
+
+.animate-soft-beat {
+  animation: softBeat 3.6s ease-in-out infinite;
+}
+
+/* Warm parchment texture effect without external assets */
+.paper-texture {
+  background-color: #FFFCF5;
+  background-image:
+    radial-gradient(at 15% 20%, rgba(249, 200, 70, 0.12) 0px, transparent 55%),
+    radial-gradient(at 85% 80%, rgba(246, 211, 181, 0.28) 0px, transparent 50%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(89, 57, 31, 0.015) 0px,
+      rgba(89, 57, 31, 0.015) 1px,
+      transparent 1px,
+      transparent 28px
+    );
+}
+
+@keyframes wishPetalArc {
+  0% {
+    transform: translate(-24vw, -36vh) rotate(-35deg) scale(1.15);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  48% {
+    transform: translate(12vw, -12vh) rotate(55deg) scale(1.05);
+    opacity: 1;
+  }
+  82% {
+    transform: translate(-4vw, 18vh) rotate(135deg) scale(0.92);
+    opacity: 0.95;
+  }
+  100% {
+    transform: translate(0px, 26vh) rotate(165deg) scale(0.82);
+    opacity: 0.9;
+  }
+}
+
+@keyframes wishSoilGlow {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.95;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+}
+
+.animate-wish-petal {
+  animation: wishPetalArc 2.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-wish-soil {
+  animation: wishSoilGlow 1.1s ease-out forwards;
+}
+
+/* Focus ring accessibility */
+:focus-visible {
+  outline: 2px solid #D98A47;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-sway,
+  .animate-float-petal,
+  .animate-drift-cloud,
+  .animate-butterfly,
+  .animate-vinyl,
+  .animate-soft-beat,
+  .animate-wish-petal,
+  .animate-wish-soil {
+    animation: none !important;
+  }
+}

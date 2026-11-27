@@ -1,0 +1,8 @@
+{
+  "name": "SUNFLOWER — A Little Universe of You",
+  "description": "An interactive romantic fairytale and 3D sunflower garden crafted as a personal universe of warmth, letters, music, memories, and quiet surprises.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
