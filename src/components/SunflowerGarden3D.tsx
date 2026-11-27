@@ -120,7 +120,7 @@ interface FlowerRig {
   bendTarget: number;
   bendCurrent: number;
   petalFlare: number;
-  kind: 'hero' | 'portal' | 'secret-normal' | 'secret-unusual';
+  kind: 'hero' | 'portal' | 'main-unusual' | 'secret-normal' | 'secret-unusual';
   messageId?: number;
 }
 
@@ -144,6 +144,8 @@ export const SunflowerGarden3D: React.FC<SunflowerGarden3DProps> = ({
   const [portalZooming, setPortalZooming] = useState(false);
   const [portalIntroVisible, setPortalIntroVisible] = useState(false);
   const [unusualModalOpen, setUnusualModalOpen] = useState(false);
+  const [rayaModalOpen, setRayaModalOpen] = useState(false);
+  const [rayaWarmed, setRayaWarmed] = useState(false);
   const [webglFallback, setWebglFallback] = useState(false);
 
   // Refs synced with props so WebGL mounts once and never resets on React state changes
@@ -151,6 +153,8 @@ export const SunflowerGarden3D: React.FC<SunflowerGarden3DProps> = ({
   const sunlightThemeRef = useRef(sunlightTheme);
   const unusualComfortedRef = useRef(unusualComforted);
   const unusualFocusedRef = useRef(false);
+  const rayaFocusedRef = useRef(false);
+  const rayaWarmedRef = useRef(false);
   const portalZoomRef = useRef(false);
   const hoveredKindRef = useRef<string | null>(null);
 
@@ -177,6 +181,8 @@ export const SunflowerGarden3D: React.FC<SunflowerGarden3DProps> = ({
       setPortalIntroVisible(true);
       setPortalZooming(false);
       portalZoomRef.current = false;
+      setRayaModalOpen(false);
+      rayaFocusedRef.current = false;
     } else {
       setUnusualModalOpen(false);
       unusualFocusedRef.current = false;
@@ -370,6 +376,8 @@ export const SunflowerGarden3D: React.FC<SunflowerGarden3DProps> = ({
 
     const centerGeo = new THREE.CylinderGeometry(0.42, 0.38, 0.16, 20);
     centerGeo.rotateX(Math.PI / 2);
+    const calyxGeo = new THREE.ConeGeometry(0.42, 0.26, 16);
+    calyxGeo.rotateX(-Math.PI / 2);
     const hitGeo = new THREE.SphereGeometry(0.95, 10, 10);
     const shadowDiscGeo = new THREE.CircleGeometry(0.65, 16);
     shadowDiscGeo.rotateX(-Math.PI / 2);
@@ -411,12 +419,17 @@ export const SunflowerGarden3D: React.FC<SunflowerGarden3DProps> = ({
       const headGroup = new THREE.Group();
       headGroup.position.set(0, 2.38, 0.08);
       headGroup.rotation.y = rotY;
-      const baseRotX = kind === 'secret-unusual' ? 0.34 : -0.14;
+      const baseRotX =
+        kind === 'secret-unusual' ? 0.34 : kind === 'main-unusual' ? 0.24 : -0.15;
       headGroup.rotation.x = baseRotX;
       root.add(headGroup);
 
       const disk = new THREE.Mesh(centerGeo, centerMat);
       headGroup.add(disk);
+
+      const calyx = new THREE.Mesh(calyxGeo, leafMat);
+      calyx.position.z = -0.15;
+      headGroup.add(calyx);
 
       const petalsGroup = new THREE.Group();
       headGroup.add(petalsGroup);
@@ -433,6 +446,9 @@ export const SunflowerGarden3D: React.FC<SunflowerGarden3DProps> = ({
 
       const hitMesh = new THREE.Mesh(hitGeo, hitMat);
       hitMesh.position.set(0, 2.38, 0.1);
+      if (kind === 'main-unusual' || kind === 'secret-unusual') {
+        hitMesh.scale.setScalar(1.3);
+      }
       root.add(hitMesh);
 
       const rig: FlowerRig = {
@@ -520,13 +536,13 @@ export const SunflowerGarden3D: React.FC<SunflowerGarden3DProps> = ({
       const s = 0.65 + Math.random() * 0.62;
 
       _dummy.position.set(x, 0, z);
-      _dummy.rotation.set(0, (Math.random() - 0.5) * 0.45, 0);
+      _dummy.rotation.set(0, (Math.random() - 0.5) * 0.16, 0);
       _dummy.scale.setScalar(s);
       _dummy.updateMatrix();
       bgStemInst.setMatrixAt(i, _dummy.matrix);
 
       _dummy.position.set(x, 2.35 * s, z + 0.05);
-      _dummy.rotation.set(-0.14, (Math.random() - 0.5) * 0.4, 0);
+      _dummy.rotation.set(-0.15, (Math.random() - 0.5) * 0.14, 0);
       _dummy.scale.setScalar(s);
       _dummy.updateMatrix();
       bgHeadInst.setMatrixAt(i, _dummy.matrix);
@@ -540,7 +556,7 @@ export const SunflowerGarden3D: React.FC<SunflowerGarden3DProps> = ({
     bgPetalInst.computeBoundingSphere();
     mainGroup.add(bgStemInst, bgHeadInst, bgPetalInst);
 
-    // 12 Interactive Hero Sunflowers arranged around the sunlit meadow
+    // 12 Interactive Hero Sunflowers all facing the sunlit direction together
     const heroCoords = [
       [-6.5, 7.2],
       [-3.4, 8.8],
@@ -560,12 +576,40 @@ export const SunflowerGarden3D: React.FC<SunflowerGarden3DProps> = ({
         hx,
         hz,
         0.92 + (idx % 3) * 0.12,
-        -hx * 0.05,
+        -hx * 0.025,
         'hero',
         idx,
       );
       mainGroup.add(rig.root);
     });
+
+    // ONE DISTINCT SUNFLOWER IN THE MAIN MEADOW NOT FACING THE SUN — FACING AWAY FOR RAYA
+    const mainUnusualX = -1.9;
+    const mainUnusualZ = 5.4;
+    const mainUnusualAwayRotY = Math.PI * 0.88;
+    const mainUnusualRig = buildCompositeSunflower(
+      mainUnusualX,
+      mainUnusualZ,
+      1.04,
+      mainUnusualAwayRotY,
+      'main-unusual',
+    );
+    const rayaBackHeartShape = new THREE.Shape();
+    rayaBackHeartShape.moveTo(0, -0.1);
+    rayaBackHeartShape.bezierCurveTo(0.13, 0.02, 0.13, 0.14, 0, 0.07);
+    rayaBackHeartShape.bezierCurveTo(-0.13, 0.14, -0.13, 0.02, 0, -0.1);
+    const rayaBackHeartGeo = new THREE.ShapeGeometry(rayaBackHeartShape);
+    const rayaBackHeartMesh = new THREE.Mesh(
+      rayaBackHeartGeo,
+      new THREE.MeshBasicMaterial({
+        color: 0xffd166,
+        side: THREE.DoubleSide,
+      }),
+    );
+    rayaBackHeartMesh.position.set(0, 0.02, -0.28);
+    rayaBackHeartMesh.rotation.y = Math.PI;
+    mainUnusualRig.headGroup.add(rayaBackHeartMesh);
+    mainGroup.add(mainUnusualRig.root);
 
     // Enormous Giant Portal Sunflower in the center-back
     const portalRig = buildCompositeSunflower(0, -4.5, 2.35, 0, 'portal');
@@ -716,7 +760,7 @@ export const SunflowerGarden3D: React.FC<SunflowerGarden3DProps> = ({
       const activeHitMeshes = interactables.filter((m) => {
         const rig = m.userData.rig as FlowerRig;
         if (modeRef.current === 'main') {
-          return rig.kind === 'hero' || rig.kind === 'portal';
+          return rig.kind === 'hero' || rig.kind === 'portal' || rig.kind === 'main-unusual';
         }
         return rig.kind === 'secret-unusual' || rig.kind === 'secret-normal';
       });
@@ -733,6 +777,12 @@ export const SunflowerGarden3D: React.FC<SunflowerGarden3DProps> = ({
         setSelectedFlower(msg);
         callbacksRef.current.onFlowerVisited(rig.messageId);
         callbacksRef.current.onPlaySfx('petal');
+      } else if (rig.kind === 'main-unusual') {
+        rig.petalFlare = 1;
+        rayaFocusedRef.current = true;
+        setRayaModalOpen(true);
+        callbacksRef.current.onUnusualFocused(true);
+        callbacksRef.current.onPlaySfx('letter');
       } else if (rig.kind === 'portal') {
         portalZoomRef.current = true;
         setPortalZooming(true);
@@ -759,7 +809,7 @@ export const SunflowerGarden3D: React.FC<SunflowerGarden3DProps> = ({
       const activeHitMeshes = interactables.filter((m) => {
         const rig = m.userData.rig as FlowerRig;
         return modeRef.current === 'main'
-          ? rig.kind === 'hero' || rig.kind === 'portal'
+          ? rig.kind === 'hero' || rig.kind === 'portal' || rig.kind === 'main-unusual'
           : rig.kind === 'secret-unusual';
       });
 
@@ -948,6 +998,22 @@ export const SunflowerGarden3D: React.FC<SunflowerGarden3DProps> = ({
             3,
             delta,
           );
+        } else if (rig.kind === 'main-unusual') {
+          const warmed = rayaWarmedRef.current;
+          const targetRotY = warmed ? mainUnusualAwayRotY - 1.15 : mainUnusualAwayRotY;
+          const targetRotX = warmed ? -0.02 : 0.24;
+          rig.headGroup.rotation.y = THREE.MathUtils.damp(
+            rig.headGroup.rotation.y,
+            targetRotY,
+            1.8,
+            delta,
+          );
+          rig.headGroup.rotation.x = THREE.MathUtils.damp(
+            rig.headGroup.rotation.x,
+            targetRotX,
+            1.8,
+            delta,
+          );
         } else {
           rig.headGroup.rotation.x = rig.baseRotX + rig.bendCurrent * 0.28;
           rig.headGroup.rotation.y = rig.baseRotY + Math.sin(elapsed * 0.5 + i) * 0.05;
@@ -963,6 +1029,11 @@ export const SunflowerGarden3D: React.FC<SunflowerGarden3DProps> = ({
         _targetLook.set(0, 5.6, -4.5);
         camera.position.lerp(_targetPos, 1 - Math.exp(-3.6 * delta));
         controls.target.lerp(_targetLook, 1 - Math.exp(-3.6 * delta));
+      } else if (!isSecret && rayaFocusedRef.current && !userInteracting) {
+        _targetPos.set(-1.1, 3.1, 9.8);
+        _targetLook.set(mainUnusualX, 2.35, mainUnusualZ);
+        camera.position.lerp(_targetPos, 1 - Math.exp(-2.8 * delta));
+        controls.target.lerp(_targetLook, 1 - Math.exp(-2.8 * delta));
       } else if (isSecret && unusualFocusedRef.current && !userInteracting) {
         _targetPos.set(-1.1, 2.7, 7.6);
         _targetLook.set(unusualX, 2.0, unusualZ);
@@ -1011,6 +1082,8 @@ export const SunflowerGarden3D: React.FC<SunflowerGarden3DProps> = ({
       petalGeo.dispose();
       bgPetalRingGeo.dispose();
       centerGeo.dispose();
+      calyxGeo.dispose();
+      rayaBackHeartGeo.dispose();
       hitGeo.dispose();
       shadowDiscGeo.dispose();
       pGeo.dispose();
@@ -1060,7 +1133,7 @@ export const SunflowerGarden3D: React.FC<SunflowerGarden3DProps> = ({
                 {sunlightTheme.mode} Meadow · {visitedFlowers.length}/12 Flowers Opened
               </div>
               <p className="mt-0.5 text-xs leading-snug opacity-85">
-                Tap any sunflower to read its note, or click the giant sunflower in the centre to step inside.
+                Tap any sunflower to read its note, click the giant sunflower in the centre, or spot the one sunflower facing away from the sun.
               </p>
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <button
@@ -1347,6 +1420,99 @@ export const SunflowerGarden3D: React.FC<SunflowerGarden3DProps> = ({
                 className="cursor-pointer rounded-full border border-[#59391F]/20 px-4 py-2 text-xs font-medium text-[#59391F] hover:bg-[#F6D3B5]/40"
               >
                 Stay in Clearing
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Love Notes Modal for Raya when Clicking the Away-Facing Sunflower in Main Meadow */}
+      {rayaModalOpen && mode === 'main' && (
+        <div
+          role="dialog"
+          aria-label="Love Notes for Raya"
+          className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[#23170F]/60 p-4 pb-16"
+        >
+          <div
+            style={{
+              boxShadow: '0 14px var(--universe-shadow-blur) rgba(25, 16, 12, 0.34)',
+            }}
+            className="paper-texture relative my-auto max-h-[78vh] w-full max-w-xl overflow-y-auto rounded-3xl border border-[#F9C846]/50 px-6 py-5 text-[#59391F] sm:px-8 sm:py-6"
+          >
+            <button
+              type="button"
+              onClick={() => {
+                setRayaModalOpen(false);
+                rayaFocusedRef.current = false;
+                onUnusualFocused(false);
+              }}
+              aria-label="Close Raya love notes"
+              className="sticky float-right top-0 cursor-pointer rounded-full bg-[#FFF7E7] p-2 hover:bg-[#F6D3B5]/50"
+            >
+              <X className="h-4 w-4" />
+            </button>
+
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F9C846]/30 text-[#D98A47]">
+                <Heart className="h-5 w-5 fill-current" />
+              </div>
+              <div>
+                <h2 className="font-display text-2xl sm:text-3xl font-semibold leading-tight">
+                  {SUNFLOWER_CONTENT.rayaSpecialSunflower.title}
+                </h2>
+                <p className="text-xs text-[#7A4F2B]">
+                  {SUNFLOWER_CONTENT.rayaSpecialSunflower.subtitle}
+                </p>
+              </div>
+            </div>
+
+            {rayaWarmed && (
+              <div className="mt-3 flex flex-col sm:flex-row items-center gap-3 rounded-2xl border border-[#E8A92E]/40 bg-[#F9C846]/20 p-3">
+                <IllustratedBoy extendingFlower className="h-24 w-16 shrink-0" />
+                <p className="font-hand text-xl text-[#59391F]">
+                  {SUNFLOWER_CONTENT.rayaSpecialSunflower.afterWarmthNote}
+                </p>
+              </div>
+            )}
+
+            <div className="mt-4 space-y-2.5">
+              {SUNFLOWER_CONTENT.rayaSpecialSunflower.notes.map((note, idx) => (
+                <div
+                  key={idx}
+                  className="rounded-2xl border border-[#D98A47]/25 bg-[#FFF7E7]/85 px-4 py-3"
+                >
+                  <div className="font-hand text-xl font-semibold text-[#D98A47]">
+                    {note.heading}
+                  </div>
+                  <p className="mt-0.5 text-sm leading-relaxed text-[#59391F]">
+                    {note.body}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-3 pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setRayaWarmed(true);
+                  rayaWarmedRef.current = true;
+                  onPlaySfx('sun');
+                }}
+                className="cursor-pointer rounded-full bg-[#E8A92E] px-5 py-2 text-xs sm:text-sm font-semibold text-[#3D2410] shadow-md transition-transform hover:scale-[1.02] hover:bg-[#F9C846]"
+              >
+                {SUNFLOWER_CONTENT.rayaSpecialSunflower.warmthButton}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setRayaModalOpen(false);
+                  rayaFocusedRef.current = false;
+                  onUnusualFocused(false);
+                }}
+                className="cursor-pointer rounded-full border border-[#59391F]/20 px-4 py-2 text-xs font-medium text-[#59391F] hover:bg-[#F6D3B5]/40"
+              >
+                Keep Exploring
               </button>
             </div>
           </div>

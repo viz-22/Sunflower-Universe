@@ -82,16 +82,16 @@ export const SUNFLOWER_CONTENT = {
     hint: 'Find the giant sunflower in the centre of the meadow to step inside.',
   },
   unusualSunflower: {
-    title: 'The Quiet Sunflower',
+    title: 'The Quiet Sunflower — For Raya',
     paragraphs: [
-      'Did you notice something?',
+      'Did you notice something, Raya?',
       'All these flowers are looking towards the sun.',
       "But this little one isn't.",
       "Maybe it's having a difficult day.",
       "Maybe it doesn't feel like blooming today.",
       "And that's okay.",
       "Even flowers deserve days when they don't have to be strong.",
-      'And so do you.',
+      'And so do you, Raya.',
       "You don't have to smile every day.",
       "You don't have to pretend everything is okay.",
       "You don't have to be happy all the time.",
@@ -101,7 +101,27 @@ export const SUNFLOWER_CONTENT = {
       'Always.',
     ],
     sunshineButton: 'LET ME GIVE YOU SOME SUNSHINE ☀️',
-    afterSunshineNote: 'No hurry to bloom. I am right here beside you, in every weather.',
+    afterSunshineNote: 'No hurry to bloom, Raya. I am right here beside you, in every weather.',
+  },
+  rayaSpecialSunflower: {
+    title: 'For My Girl, Raya',
+    subtitle: 'The one sunflower that turned away from the sun—waiting for you',
+    notes: [
+      {
+        heading: 'Hey Raya,',
+        body: 'Every other sunflower in this meadow faces the exact same direction—following the sun because that is what they are supposed to do. This one turned away quietly, looking for something much rarer: you.',
+      },
+      {
+        heading: 'What I Adore About You,',
+        body: 'Your kindness, the warmth in your voice, and the effortless way you make ordinary days feel worth remembering. Even when you do not notice it yourself, Raya, you bring light into every room you walk into.',
+      },
+      {
+        heading: 'Always In Your Corner,',
+        body: 'On the days when everything feels sunny and on the days when you feel like looking away from the world too, you never have to stand alone. My heart will always face toward you, Raya. Always.',
+      },
+    ],
+    warmthButton: 'GIVE THIS SUNFLOWER SOME WARMTH ☀️',
+    afterWarmthNote: 'Even a shy flower turns a little brighter when you are near, Raya.',
   },
   growGame: {
     completionLines: [
