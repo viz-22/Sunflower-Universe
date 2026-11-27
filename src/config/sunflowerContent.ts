@@ -379,7 +379,7 @@ export const SUNFLOWER_CONTENT = {
   initialMemories: [
     {
       id: 'mem-1',
-      imageSrc: '/src/assets/images/sunflower_polaroid_golden_field_1795773133778.jpg',
+      imageSrc: './src/assets/images/sunflower_polaroid_golden_field_1795773133778.jpg',
       caption: 'Walking through a sunlit meadow together',
       quote: 'Every path feels softer when we take the long way round.',
       hiddenMessage: 'Secret note: I still remember the first time you smiled at me like this.',
@@ -388,7 +388,7 @@ export const SUNFLOWER_CONTENT = {
     },
     {
       id: 'mem-2',
-      imageSrc: '/src/assets/images/sunflower_polaroid_bouquet_1795773134472.jpg',
+      imageSrc: './src/assets/images/sunflower_polaroid_bouquet_1795773134472.jpg',
       caption: 'A bouquet wrapped in linen & afternoon light',
       quote: 'For all the ordinary Tuesdays that deserve fresh flowers.',
       hiddenMessage: 'Secret note: One bouquet is never enough for someone like you.',
@@ -397,7 +397,7 @@ export const SUNFLOWER_CONTENT = {
     },
     {
       id: 'mem-3',
-      imageSrc: '/src/assets/images/sunflower_polaroid_starlight_1795773134593.jpg',
+      imageSrc: './src/assets/images/sunflower_polaroid_starlight_1795773134593.jpg',
       caption: 'Fireflies keeping watch beneath the crescent moon',
       quote: 'Even after sunset, warmth remembers where to glow.',
       hiddenMessage: 'Secret note: You are my favourite person to talk to past midnight.',
@@ -406,7 +406,7 @@ export const SUNFLOWER_CONTENT = {
     },
     {
       id: 'mem-4',
-      imageSrc: '/src/assets/images/sunflower_polaroid_teacup_1795773133679.jpg',
+      imageSrc: './src/assets/images/sunflower_polaroid_teacup_1795773133679.jpg',
       caption: 'Warm tea & an open notebook by the window',
       quote: 'Quiet mornings are my favourite chapter with you.',
       hiddenMessage: 'Secret note: Here is to a hundred slow mornings together.',
